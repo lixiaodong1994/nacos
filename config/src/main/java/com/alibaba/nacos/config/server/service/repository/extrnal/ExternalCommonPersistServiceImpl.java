@@ -75,9 +75,10 @@ public class ExternalCommonPersistServiceImpl implements CommonPersistService {
         try {
             TenantInfoMapper tenantInfoMapper = mapperManager.findMapper(dataSourceService.getDataSourceType(),
                     TableConstant.TENANT_INFO);
+            Integer id = jt.queryForObject("select SEQ_TENANT_INFO.nextval from dual", Integer.class);
             jt.update(tenantInfoMapper.insert(
-                    Arrays.asList("kp", "tenant_id", "tenant_name", "tenant_desc", "create_source", "gmt_create",
-                            "gmt_modified")), kp, tenantId, tenantName, tenantDesc, createResoure, time, time);
+                    Arrays.asList("id", "kp", "tenant_id", "tenant_name", "tenant_desc", "create_source", "gmt_create",
+                            "gmt_modified")), id, kp, tenantId, tenantName, tenantDesc, createResoure, time, time);
         } catch (DataAccessException e) {
             LogUtil.FATAL_LOG.error("[db-error] " + e, e);
             throw e;

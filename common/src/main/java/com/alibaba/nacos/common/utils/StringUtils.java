@@ -54,6 +54,8 @@ public class StringUtils {
     private static final String FOLDER_SEPARATOR = "/";
     
     private static final String WINDOWS_FOLDER_SEPARATOR = "\\";
+
+    public static final String NULL = "null";
     
     /**
      * <p>Create a string with encoding format as utf8.</p>

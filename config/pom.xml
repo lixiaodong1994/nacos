@@ -126,6 +126,13 @@
             <groupId>com.alibaba.nacos</groupId>
             <artifactId>nacos-datasource-plugin</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.oracle</groupId>
+            <artifactId>ojdbc8</artifactId>
+            <version>19.3.0.0.0</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/main/resources/jars/ojdbc8.jar</systemPath>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
@@ -169,6 +176,7 @@
                         <artifactId>spring-boot-maven-plugin</artifactId>
                         <configuration>
                             <mainClass>com.alibaba.nacos.config.server.Config</mainClass>
+                            <includeSystemScope>true</includeSystemScope>
                         </configuration>
                     </plugin>
                 </plugins>

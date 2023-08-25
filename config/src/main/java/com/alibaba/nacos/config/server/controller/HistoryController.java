@@ -68,7 +68,7 @@ public class HistoryController {
     @Secured(action = ActionTypes.READ, signType = SignType.CONFIG)
     public Page<ConfigHistoryInfo> listConfigHistory(@RequestParam("dataId") String dataId,
             @RequestParam("group") String group,
-            @RequestParam(value = "tenant", required = false, defaultValue = StringUtils.EMPTY) String tenant,
+            @RequestParam(value = "tenant", required = false, defaultValue = StringUtils.NULL) String tenant,
             @RequestParam(value = "appName", required = false) String appName,
             @RequestParam(value = "pageNo", required = false) Integer pageNo,
             @RequestParam(value = "pageSize", required = false) Integer pageSize, ModelMap modelMap) {
@@ -93,7 +93,7 @@ public class HistoryController {
     @Secured(action = ActionTypes.READ, signType = SignType.CONFIG)
     public ConfigHistoryInfo getConfigHistoryInfo(@RequestParam("dataId") String dataId,
             @RequestParam("group") String group,
-            @RequestParam(value = "tenant", required = false, defaultValue = StringUtils.EMPTY) String tenant,
+            @RequestParam(value = "tenant", required = false, defaultValue = StringUtils.NULL) String tenant,
             @RequestParam("nid") Long nid) throws AccessException {
         return historyService.getConfigHistoryInfo(dataId, group, tenant, nid);
     }
@@ -113,7 +113,7 @@ public class HistoryController {
     @Secured(action = ActionTypes.READ, signType = SignType.CONFIG)
     public ConfigHistoryInfo getPreviousConfigHistoryInfo(@RequestParam("dataId") String dataId,
             @RequestParam("group") String group,
-            @RequestParam(value = "tenant", required = false, defaultValue = StringUtils.EMPTY) String tenant,
+            @RequestParam(value = "tenant", required = false, defaultValue = StringUtils.NULL) String tenant,
             @RequestParam("id") Long id) throws AccessException {
         return historyService.getPreviousConfigHistoryInfo(dataId, group, tenant, id);
     }

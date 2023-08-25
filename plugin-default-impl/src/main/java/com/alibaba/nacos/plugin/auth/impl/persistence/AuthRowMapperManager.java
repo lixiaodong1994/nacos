@@ -73,7 +73,7 @@ public class AuthRowMapperManager {
         @Override
         public PermissionInfo mapRow(ResultSet rs, int rowNum) throws SQLException {
             PermissionInfo info = new PermissionInfo();
-            info.setResource(rs.getString("resource"));
+            info.setResource(rs.getString("resources"));
             info.setAction(rs.getString("action"));
             info.setRole(rs.getString("role"));
             return info;
