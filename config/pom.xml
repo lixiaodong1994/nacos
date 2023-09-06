@@ -133,6 +133,11 @@
             <scope>system</scope>
             <systemPath>${project.basedir}/src/main/resources/jars/ojdbc8.jar</systemPath>
         </dependency>
+        <dependency>
+            <groupId>cn.easyproject</groupId>
+            <artifactId>orai18n</artifactId>
+            <version>12.1.0.2.0</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
