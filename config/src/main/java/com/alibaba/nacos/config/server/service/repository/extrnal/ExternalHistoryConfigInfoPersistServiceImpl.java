@@ -88,22 +88,6 @@ public class ExternalHistoryConfigInfoPersistServiceImpl implements HistoryConfi
     }
     
     @Override
-    public List<ConfigInfo> convertDeletedConfig(List<Map<String, Object>> list) {
-        List<ConfigInfo> configs = new ArrayList<>();
-        for (Map<String, Object> map : list) {
-            String dataId = (String) map.get("data_id");
-            String group = (String) map.get("group_id");
-            String tenant = (String) map.get("tenant_id");
-            ConfigInfo config = new ConfigInfo();
-            config.setDataId(dataId);
-            config.setGroup(group);
-            config.setTenant(tenant);
-            configs.add(config);
-        }
-        return configs;
-    }
-
-    @Override
     public void insertConfigHistoryAtomic(long id, ConfigInfo configInfo, String srcIp, String srcUser,
                                           final Timestamp time, String ops) {
         String appNameTmp = StringUtils.isBlank(configInfo.getAppName()) ? StringUtils.EMPTY : configInfo.getAppName();
