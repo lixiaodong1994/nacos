@@ -16,12 +16,16 @@
 
 package com.alibaba.nacos.common.remote.client.grpc;
 
+import com.alibaba.nacos.common.remote.TlsConfig;
+import com.alibaba.nacos.common.remote.client.RpcClientTlsConfig;
+import com.alibaba.nacos.common.remote.client.RpcClientTlsConfigFactory;
 import com.alibaba.nacos.common.utils.ThreadUtils;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Default grpc client config.
@@ -30,33 +34,39 @@ import java.util.Properties;
  */
 public class DefaultGrpcClientConfig implements GrpcClientConfig {
     
-    private String name;
+    private final String name;
     
-    private int retryTimes;
+    private final int retryTimes;
     
-    private long timeOutMills;
+    private final long timeOutMills;
     
-    private long connectionKeepAlive;
+    private final long connectionKeepAlive;
     
-    private long threadPoolKeepAlive;
+    private final long channelKeepAliveTimeout;
     
-    private int threadPoolCoreSize;
+    private final long threadPoolKeepAlive;
     
-    private int threadPoolMaxSize;
+    private final int threadPoolCoreSize;
     
-    private long serverCheckTimeOut;
+    private final int threadPoolMaxSize;
     
-    private int threadPoolQueueSize;
+    private final long serverCheckTimeOut;
     
-    private int maxInboundMessageSize;
+    private final int threadPoolQueueSize;
     
-    private int channelKeepAlive;
+    private final int maxInboundMessageSize;
     
-    private int healthCheckRetryTimes;
+    private final int channelKeepAlive;
     
-    private long healthCheckTimeOut;
+    private final int healthCheckRetryTimes;
     
-    private Map<String, String> labels;
+    private final long healthCheckTimeOut;
+    
+    private final long capabilityNegotiationTimeout;
+    
+    private final Map<String, String> labels;
+    
+    private RpcClientTlsConfig tlsConfig = new RpcClientTlsConfig();
     
     /**
      * constructor.
@@ -82,7 +92,18 @@ public class DefaultGrpcClientConfig implements GrpcClientConfig {
         this.healthCheckRetryTimes = loadIntegerConfig(GrpcConstants.GRPC_HEALTHCHECK_RETRY_TIMES,
                 builder.healthCheckRetryTimes);
         this.healthCheckTimeOut = loadLongConfig(GrpcConstants.GRPC_HEALTHCHECK_TIMEOUT, builder.healthCheckTimeOut);
+        this.channelKeepAliveTimeout = loadLongConfig(GrpcConstants.GRPC_CHANNEL_KEEP_ALIVE_TIMEOUT,
+                builder.channelKeepAliveTimeout);
+        this.capabilityNegotiationTimeout = loadLongConfig(GrpcConstants.GRPC_CHANNEL_CAPABILITY_NEGOTIATION_TIMEOUT,
+                builder.capabilityNegotiationTimeout);
         this.labels = builder.labels;
+        this.labels.put("tls.enable", "false");
+        if (Objects.nonNull(builder.tlsConfig)) {
+            this.tlsConfig = builder.tlsConfig;
+            if (Objects.nonNull(builder.tlsConfig.getEnableTls()) && builder.tlsConfig.getEnableTls()) {
+                this.labels.put("tls.enable", "true");
+            }
+        }
     }
     
     private int loadIntegerConfig(String key, int builderValue) {
@@ -149,6 +170,25 @@ public class DefaultGrpcClientConfig implements GrpcClientConfig {
     }
     
     @Override
+    public long channelKeepAliveTimeout() {
+        return channelKeepAliveTimeout;
+    }
+    
+    @Override
+    public TlsConfig tlsConfig() {
+        return tlsConfig;
+    }
+    
+    public void setTlsConfig(RpcClientTlsConfig tlsConfig) {
+        this.tlsConfig = tlsConfig;
+    }
+    
+    @Override
+    public long capabilityNegotiationTimeout() {
+        return this.capabilityNegotiationTimeout;
+    }
+    
+    @Override
     public int healthCheckRetryTimes() {
         return healthCheckRetryTimes;
     }
@@ -191,13 +231,29 @@ public class DefaultGrpcClientConfig implements GrpcClientConfig {
         
         private int channelKeepAlive = 6 * 60 * 1000;
         
+        private long channelKeepAliveTimeout = TimeUnit.SECONDS.toMillis(20L);
+        
         private int healthCheckRetryTimes = 3;
         
         private long healthCheckTimeOut = 3000L;
         
-        private Map<String, String> labels = new HashMap<>();
+        private long capabilityNegotiationTimeout = 5000L;
+        
+        private final Map<String, String> labels = new HashMap<>();
+        
+        private RpcClientTlsConfig tlsConfig = new RpcClientTlsConfig();
         
         private Builder() {
+        }
+
+        public Builder buildSdkFromProperties(Properties properties) {
+            RpcClientTlsConfig tlsConfig = RpcClientTlsConfigFactory.getInstance().createSdkConfig(properties);
+            return fromProperties(properties, tlsConfig);
+        }
+
+        public Builder buildClusterFromProperties(Properties properties) {
+            RpcClientTlsConfig tlsConfig = RpcClientTlsConfigFactory.getInstance().createClusterConfig(properties);
+            return fromProperties(properties, tlsConfig);
         }
         
         /**
@@ -206,55 +262,64 @@ public class DefaultGrpcClientConfig implements GrpcClientConfig {
          * @param properties properties
          * @return Builder
          */
-        public Builder fromProperties(Properties properties) {
-            if (properties.contains(GrpcConstants.GRPC_NAME)) {
+        public Builder fromProperties(Properties properties, RpcClientTlsConfig tlsConfig) {
+            if (properties.containsKey(GrpcConstants.GRPC_NAME)) {
                 this.name = properties.getProperty(GrpcConstants.GRPC_NAME);
             }
-            if (properties.contains(GrpcConstants.GRPC_RETRY_TIMES)) {
+            if (properties.containsKey(GrpcConstants.GRPC_RETRY_TIMES)) {
                 this.retryTimes = Integer.parseInt(properties.getProperty(GrpcConstants.GRPC_RETRY_TIMES));
             }
-            if (properties.contains(GrpcConstants.GRPC_TIMEOUT_MILLS)) {
+            if (properties.containsKey(GrpcConstants.GRPC_TIMEOUT_MILLS)) {
                 this.timeOutMills = Long.parseLong(properties.getProperty(GrpcConstants.GRPC_TIMEOUT_MILLS));
             }
-            if (properties.contains(GrpcConstants.GRPC_CONNECT_KEEP_ALIVE_TIME)) {
-                this.connectionKeepAlive = Long
-                        .parseLong(properties.getProperty(GrpcConstants.GRPC_CONNECT_KEEP_ALIVE_TIME));
+            if (properties.containsKey(GrpcConstants.GRPC_CONNECT_KEEP_ALIVE_TIME)) {
+                this.connectionKeepAlive = Long.parseLong(
+                        properties.getProperty(GrpcConstants.GRPC_CONNECT_KEEP_ALIVE_TIME));
             }
-            if (properties.contains(GrpcConstants.GRPC_THREADPOOL_KEEPALIVETIME)) {
-                this.threadPoolKeepAlive = Long
-                        .parseLong(properties.getProperty(GrpcConstants.GRPC_THREADPOOL_KEEPALIVETIME));
+            if (properties.containsKey(GrpcConstants.GRPC_THREADPOOL_KEEPALIVETIME)) {
+                this.threadPoolKeepAlive = Long.parseLong(
+                        properties.getProperty(GrpcConstants.GRPC_THREADPOOL_KEEPALIVETIME));
             }
-            if (properties.contains(GrpcConstants.GRPC_THREADPOOL_CORE_SIZE)) {
-                this.threadPoolCoreSize = Integer
-                        .parseInt(properties.getProperty(GrpcConstants.GRPC_THREADPOOL_CORE_SIZE));
+            if (properties.containsKey(GrpcConstants.GRPC_THREADPOOL_CORE_SIZE)) {
+                this.threadPoolCoreSize = Integer.parseInt(
+                        properties.getProperty(GrpcConstants.GRPC_THREADPOOL_CORE_SIZE));
             }
-            if (properties.contains(GrpcConstants.GRPC_THREADPOOL_MAX_SIZE)) {
-                this.threadPoolMaxSize = Integer
-                        .parseInt(properties.getProperty(GrpcConstants.GRPC_THREADPOOL_MAX_SIZE));
+            if (properties.containsKey(GrpcConstants.GRPC_THREADPOOL_MAX_SIZE)) {
+                this.threadPoolMaxSize = Integer.parseInt(
+                        properties.getProperty(GrpcConstants.GRPC_THREADPOOL_MAX_SIZE));
             }
-            if (properties.contains(GrpcConstants.GRPC_SERVER_CHECK_TIMEOUT)) {
-                this.serverCheckTimeOut = Long
-                        .parseLong(properties.getProperty(GrpcConstants.GRPC_SERVER_CHECK_TIMEOUT));
+            if (properties.containsKey(GrpcConstants.GRPC_SERVER_CHECK_TIMEOUT)) {
+                this.serverCheckTimeOut = Long.parseLong(
+                        properties.getProperty(GrpcConstants.GRPC_SERVER_CHECK_TIMEOUT));
             }
-            if (properties.contains(GrpcConstants.GRPC_QUEUESIZE)) {
+            if (properties.containsKey(GrpcConstants.GRPC_QUEUESIZE)) {
                 this.threadPoolQueueSize = Integer.parseInt(properties.getProperty(GrpcConstants.GRPC_QUEUESIZE));
             }
-            if (properties.contains(GrpcConstants.GRPC_MAX_INBOUND_MESSAGE_SIZE)) {
-                this.maxInboundMessageSize = Integer
-                        .parseInt(properties.getProperty(GrpcConstants.GRPC_MAX_INBOUND_MESSAGE_SIZE));
+            if (properties.containsKey(GrpcConstants.GRPC_MAX_INBOUND_MESSAGE_SIZE)) {
+                this.maxInboundMessageSize = Integer.parseInt(
+                        properties.getProperty(GrpcConstants.GRPC_MAX_INBOUND_MESSAGE_SIZE));
             }
-            if (properties.contains(GrpcConstants.GRPC_CHANNEL_KEEP_ALIVE_TIME)) {
-                this.channelKeepAlive = Integer
-                        .parseInt(properties.getProperty(GrpcConstants.GRPC_CHANNEL_KEEP_ALIVE_TIME));
+            if (properties.containsKey(GrpcConstants.GRPC_CHANNEL_KEEP_ALIVE_TIME)) {
+                this.channelKeepAlive = Integer.parseInt(
+                        properties.getProperty(GrpcConstants.GRPC_CHANNEL_KEEP_ALIVE_TIME));
             }
-            if (properties.contains(GrpcConstants.GRPC_HEALTHCHECK_RETRY_TIMES)) {
-                this.healthCheckRetryTimes = Integer
-                        .parseInt(properties.getProperty(GrpcConstants.GRPC_HEALTHCHECK_RETRY_TIMES));
+            if (properties.containsKey(GrpcConstants.GRPC_CHANNEL_CAPABILITY_NEGOTIATION_TIMEOUT)) {
+                this.capabilityNegotiationTimeout = Integer.parseInt(
+                        properties.getProperty(GrpcConstants.GRPC_CHANNEL_CAPABILITY_NEGOTIATION_TIMEOUT));
             }
-            if (properties.contains(GrpcConstants.GRPC_HEALTHCHECK_TIMEOUT)) {
-                this.healthCheckTimeOut = Long
-                        .parseLong(properties.getProperty(GrpcConstants.GRPC_HEALTHCHECK_TIMEOUT));
+            if (properties.containsKey(GrpcConstants.GRPC_HEALTHCHECK_RETRY_TIMES)) {
+                this.healthCheckRetryTimes = Integer.parseInt(
+                        properties.getProperty(GrpcConstants.GRPC_HEALTHCHECK_RETRY_TIMES));
             }
+            if (properties.containsKey(GrpcConstants.GRPC_HEALTHCHECK_TIMEOUT)) {
+                this.healthCheckTimeOut = Long.parseLong(
+                        properties.getProperty(GrpcConstants.GRPC_HEALTHCHECK_TIMEOUT));
+            }
+            if (properties.containsKey(GrpcConstants.GRPC_CHANNEL_KEEP_ALIVE_TIMEOUT)) {
+                this.channelKeepAliveTimeout = Integer.parseInt(
+                        properties.getProperty(GrpcConstants.GRPC_CHANNEL_KEEP_ALIVE_TIMEOUT));
+            }
+            this.tlsConfig = tlsConfig;
             return this;
         }
         
@@ -351,6 +416,22 @@ public class DefaultGrpcClientConfig implements GrpcClientConfig {
         }
         
         /**
+         * set channelKeepAlive.
+         *
+         * @param channelKeepAliveTimeout milliseconds
+         * @return builder
+         */
+        public Builder setChannelKeepAliveTimeout(int channelKeepAliveTimeout) {
+            this.channelKeepAliveTimeout = channelKeepAliveTimeout;
+            return this;
+        }
+        
+        public Builder setCapabilityNegotiationTimeout(long capabilityNegotiationTimeout) {
+            this.capabilityNegotiationTimeout = capabilityNegotiationTimeout;
+            return this;
+        }
+        
+        /**
          * set healthCheckRetryTimes.
          */
         public Builder setHealthCheckRetryTimes(int healthCheckRetryTimes) {
@@ -371,6 +452,17 @@ public class DefaultGrpcClientConfig implements GrpcClientConfig {
          */
         public Builder setLabels(Map<String, String> labels) {
             this.labels.putAll(labels);
+            return this;
+        }
+        
+        /**
+         * set tlsConfig.
+         *
+         * @param tlsConfig tls of client.
+         * @return
+         */
+        public Builder setTlsConfig(RpcClientTlsConfig tlsConfig) {
+            this.tlsConfig = tlsConfig;
             return this;
         }
         

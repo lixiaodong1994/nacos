@@ -17,8 +17,6 @@
 package com.alibaba.nacos.plugin.datasource.impl.mysql;
 
 import com.alibaba.nacos.plugin.datasource.constants.DataSourceConstant;
-import com.alibaba.nacos.plugin.datasource.constants.TableConstant;
-import com.alibaba.nacos.plugin.datasource.mapper.AbstractMapper;
 import com.alibaba.nacos.plugin.datasource.mapper.TenantInfoMapper;
 
 /**
@@ -27,13 +25,8 @@ import com.alibaba.nacos.plugin.datasource.mapper.TenantInfoMapper;
  * @author hyx
  **/
 
-public class TenantInfoMapperByMySql extends AbstractMapper implements TenantInfoMapper {
-    
-    @Override
-    public String getTableName() {
-        return TableConstant.TENANT_INFO;
-    }
-    
+public class TenantInfoMapperByMySql extends AbstractMapperByMysql implements TenantInfoMapper {
+
     @Override
     public String getDataSource() {
         return DataSourceConstant.MYSQL;
