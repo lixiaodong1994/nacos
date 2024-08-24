@@ -135,11 +135,9 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.oracle</groupId>
+            <groupId>com.oracle.database.jdbc</groupId>
             <artifactId>ojdbc8</artifactId>
-            <version>19.3.0.0.0</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/src/main/resources/jars/ojdbc8.jar</systemPath>
+            <version>21.11.0.0</version>
         </dependency>
         <dependency>
             <groupId>cn.easyproject</groupId>

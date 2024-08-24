@@ -17,9 +17,12 @@ package com.alibaba.nacos.plugin.datasource.impl.oracle;
  */
 
 import com.alibaba.nacos.plugin.datasource.constants.DataSourceConstant;
-import com.alibaba.nacos.plugin.datasource.constants.TableConstant;
-import com.alibaba.nacos.plugin.datasource.mapper.AbstractMapper;
 import com.alibaba.nacos.plugin.datasource.mapper.ConfigInfoBetaMapper;
+import com.alibaba.nacos.plugin.datasource.model.MapperContext;
+import com.alibaba.nacos.plugin.datasource.model.MapperResult;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The mysql implementation of ConfigInfoBetaMapper.
@@ -27,25 +30,21 @@ import com.alibaba.nacos.plugin.datasource.mapper.ConfigInfoBetaMapper;
  * @author hyx
  **/
 
-public class ConfigInfoBetaMapperByOracle extends AbstractMapper implements ConfigInfoBetaMapper {
+public class ConfigInfoBetaMapperByOracle extends AbstractMapperByOracle implements ConfigInfoBetaMapper {
+
 
     @Override
-    public String updateConfigInfo4BetaCas() {
-        return "UPDATE config_info_beta SET content = ?,md5 = ?,beta_ips = ?,src_ip = ?,src_user = ?,gmt_modified = ?,app_name = ? "
-                + "WHERE data_id = ? AND group_id = ? AND tenant_id = ? AND (md5 = ? or md5 is null or md5 = '')";
-    }
-
-    @Override
-    public String findAllConfigInfoBetaForDumpAllFetchRows(int startRow, int pageSize) {
-        return " SELECT * FROM (SELECT t.id,data_id,group_id,tenant_id,app_name,content,md5,gmt_modified,beta_ips,encrypted_data_key "
+    public MapperResult findAllConfigInfoBetaForDumpAllFetchRows(MapperContext context) {
+        int startRow = context.getStartRow();
+        int pageSize = context.getStartRow() + context.getPageSize();
+        String sql = " SELECT * FROM (SELECT t.id,data_id,group_id,tenant_id,app_name,content,md5,gmt_modified,beta_ips,encrypted_data_key "
                 + " FROM ( SELECT * FROM (SELECT id, ROWNUM as rnum FROM config_info_beta  ORDER BY id) "
                 + "WHERE  rnum >= " + startRow + " and " + pageSize + " >= rnum" + " )"
                 + "  g, config_info_beta t WHERE g.id = t.id ";
-    }
-
-    @Override
-    public String getTableName() {
-        return TableConstant.CONFIG_INFO_BETA;
+        List<Object> paramList = new ArrayList<>();
+        paramList.add(startRow);
+        paramList.add(pageSize);
+        return new MapperResult(sql, paramList);
     }
 
     @Override

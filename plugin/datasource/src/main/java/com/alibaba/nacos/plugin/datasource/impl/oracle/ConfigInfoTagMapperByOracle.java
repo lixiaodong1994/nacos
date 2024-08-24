@@ -18,9 +18,11 @@ package com.alibaba.nacos.plugin.datasource.impl.oracle;
 
 
 import com.alibaba.nacos.plugin.datasource.constants.DataSourceConstant;
-import com.alibaba.nacos.plugin.datasource.constants.TableConstant;
-import com.alibaba.nacos.plugin.datasource.mapper.AbstractMapper;
 import com.alibaba.nacos.plugin.datasource.mapper.ConfigInfoTagMapper;
+import com.alibaba.nacos.plugin.datasource.model.MapperContext;
+import com.alibaba.nacos.plugin.datasource.model.MapperResult;
+
+import java.util.Collections;
 
 /**
  * The mysql implementation of ConfigInfoTagMapper.
@@ -28,25 +30,13 @@ import com.alibaba.nacos.plugin.datasource.mapper.ConfigInfoTagMapper;
  * @author hyx
  **/
 
-public class ConfigInfoTagMapperByOracle extends AbstractMapper implements ConfigInfoTagMapper {
+public class ConfigInfoTagMapperByOracle extends AbstractMapperByOracle implements ConfigInfoTagMapper {
 
     @Override
-    public String updateConfigInfo4TagCas() {
-        return "UPDATE config_info_tag SET content = ?, md5 = ?, src_ip = ?,src_user = ?,gmt_modified = ?,app_name = ? "
-                + "WHERE data_id = ? AND group_id = ? AND tenant_id = ? AND tag_id = ? AND (md5 = ? OR md5 IS NULL OR md5 = '')";
-    }
-
-    @Override
-    public String findAllConfigInfoTagForDumpAllFetchRows(int startRow, int pageSize) {
-        return " SELECT t.id,data_id,group_id,tenant_id,tag_id,app_name,content,md5,gmt_modified "
-                + " FROM ( SELECT * FROM ( SELECT id, ROWNUM as rnum FROM config_info_tag  ORDER BY id) "
-                + " WHERE  rnum >= " + startRow + " and " + pageSize + " >= rnum ) "
-                + "g, config_info_tag t  WHERE g.id = t.id  ";
-    }
-
-    @Override
-    public String getTableName() {
-        return TableConstant.CONFIG_INFO_TAG;
+    public MapperResult findAllConfigInfoTagForDumpAllFetchRows(MapperContext context) {
+        String sql = " SELECT t.id,data_id,group_id,tenant_id,tag_id,app_name,content,md5,gmt_modified "
+                + " FROM (  SELECT TEMP.* FROM (SELECT INNER_TEMP.*, ROWNUM RN FROM ( SELECT id FROM config_info_tag  ORDER BY id ) INNER_TEMP WHERE ROWNUM <= " + (context.getStartRow() + context.getPageSize()) + " ) TEMP WHERE TEMP.RN >= " + context.getStartRow() + " ) " + "g, config_info_tag t  WHERE g.id = t.id  ";
+        return new MapperResult(sql, Collections.emptyList());
     }
 
     @Override

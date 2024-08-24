@@ -29,22 +29,22 @@ import java.util.List;
  * @date 2024/08/13
  */
 public final class WhereBuilder {
-    
+
     /**
      * Base sql.
      */
     private final String sql;
-    
+
     /**
      * Parameters.
      */
     private final List<Object> parameters = new ArrayList<>();
-    
+
     /**
      * Where Conditional.
      */
     private final StringBuilder where = new StringBuilder(" WHERE ");
-    
+
     /**
      * Default Construct.
      *
@@ -53,7 +53,7 @@ public final class WhereBuilder {
     public WhereBuilder(String sql) {
         this.sql = sql;
     }
-    
+
     /**
      * Build AND.
      *
@@ -63,7 +63,7 @@ public final class WhereBuilder {
         where.append(" AND ");
         return this;
     }
-    
+
     /**
      * Build OR.
      *
@@ -73,11 +73,11 @@ public final class WhereBuilder {
         where.append(" OR ");
         return this;
     }
-    
+
     /**
      * Build Equals.
      *
-     * @param filed Filed name
+     * @param filed     Filed name
      * @param parameter Parameters
      * @return Return {@link WhereBuilder}
      */
@@ -86,11 +86,11 @@ public final class WhereBuilder {
         parameters.add(parameter);
         return this;
     }
-    
+
     /**
      * Build LIKE.
      *
-     * @param filed Filed name
+     * @param filed     Filed name
      * @param parameter Parameters
      * @return Return {@link WhereBuilder}
      */
@@ -99,11 +99,11 @@ public final class WhereBuilder {
         parameters.add(parameter);
         return this;
     }
-    
+
     /**
      * Build IN.
      *
-     * @param filed Filed name
+     * @param filed        Filed name
      * @param parameterArr Parameters Array
      * @return Return {@link WhereBuilder}
      */
@@ -119,7 +119,7 @@ public final class WhereBuilder {
         where.append(") ");
         return this;
     }
-    
+
     /**
      * Build offset.
      *
@@ -135,7 +135,7 @@ public final class WhereBuilder {
                 .append(" ROWS ONLY");
         return this;
     }
-    
+
     /**
      * Build limit.
      *
@@ -150,7 +150,12 @@ public final class WhereBuilder {
                 .append(pageSize);
         return this;
     }
-    
+
+    public WhereBuilder append(String val) {
+        where.append(val);
+        return this;
+    }
+
     /**
      * Build.
      *

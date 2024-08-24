@@ -1,5 +1,3 @@
-package com.alibaba.nacos.plugin.datasource.impl.oracle;
-
 /*
  * Copyright 1999-2022 Alibaba Group Holding Ltd.
  *
@@ -16,27 +14,21 @@ package com.alibaba.nacos.plugin.datasource.impl.oracle;
  * limitations under the License.
  */
 
-import com.alibaba.nacos.plugin.datasource.constants.DataSourceConstant;
-import com.alibaba.nacos.plugin.datasource.constants.TableConstant;
-import com.alibaba.nacos.plugin.datasource.mapper.TenantInfoMapper;
+package com.alibaba.nacos.plugin.datasource.impl.oracle;
+
+import com.alibaba.nacos.plugin.datasource.enums.oracle.TrustedOracleFunctionEnum;
+import com.alibaba.nacos.plugin.datasource.mapper.AbstractMapper;
 
 /**
- * The mysql implementation of TenantInfoMapper.
+ * The abstract derby mapper contains CRUD methods.
  *
- * @author hyx
+ * @author blake.qiu
  **/
-
-public class TenantInfoMapperByOracle extends AbstractMapperByOracle implements TenantInfoMapper {
-
-    @Override
-    public String getTableName() {
-        return TableConstant.TENANT_INFO;
-    }
+public abstract class AbstractMapperByOracle extends AbstractMapper {
 
     @Override
-    public String getDataSource() {
-        return DataSourceConstant.ORACLE;
+    public String getFunction(String functionName) {
+        return TrustedOracleFunctionEnum.getFunctionByName(functionName);
     }
+
 }
-
-

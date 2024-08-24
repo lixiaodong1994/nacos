@@ -37,9 +37,9 @@ import static com.alibaba.nacos.common.utils.CollectionUtils.getOrDefault;
  */
 public class ExternalDataSourceProperties {
 
-//    private static final String JDBC_DRIVER_NAME = "com.mysql.cj.jdbc.Driver";
-//
-//    private static final String TEST_QUERY = "SELECT 1";
+    //    private static final String JDBC_DRIVER_NAME = "com.mysql.cj.jdbc.Driver";
+    //
+    //    private static final String TEST_QUERY = "SELECT 1";
 
     private String jdbcDriverName;
 
@@ -70,17 +70,19 @@ public class ExternalDataSourceProperties {
     }
 
     public void setTestQuery(String testQuery) {
-        if (StringUtils.isBlank(testQuery))
+        if (StringUtils.isBlank(testQuery)) {
             this.testQuery = "SELECT 1";
-        else
+        } else {
             this.testQuery = testQuery;
+        }
     }
 
     public void setJdbcDriverName(String jdbcDriverName) {
-        if (StringUtils.isBlank(jdbcDriverName))
+        if (StringUtils.isBlank(jdbcDriverName)) {
             this.jdbcDriverName = "com.mysql.cj.jdbc.Driver";
-        else
+        } else {
             this.jdbcDriverName = jdbcDriverName;
+        }
     }
 
     /**
@@ -110,7 +112,7 @@ public class ExternalDataSourceProperties {
             if (StringUtils.isEmpty(ds.getConnectionTestQuery())) {
                 ds.setConnectionTestQuery(testQuery);
             }
-            
+
             dataSources.add(ds);
             callback.accept(ds);
         }
